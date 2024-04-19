@@ -1,0 +1,89 @@
+import random
+import math
+
+# Function to check if a number is prime
+def is_prime(num):
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+# Function to generate a list of prime numbers within a given range
+def generate_primes(start, end):
+    return [num for num in range(start, end) if is_prime(num)]
+
+# Generate a list of prime numbers and select two random primes
+prime_numbers = generate_primes(1, 100)
+prime_one = random.choice(prime_numbers)
+prime_two = random.choice(prime_numbers)
+
+print(f"Random prime number 1: {prime_one}")
+print(f"Random prime number 2: {prime_two}")
+
+# Calculate n and the totient (phi)
+n = prime_one * prime_two
+phi = (prime_one - 1) * (prime_two - 1)
+e = 17  # Public exponent
+
+# Check if e and phi are co_prime
+def are_co_prime(a, b):
+    return math.gcd(a, b) == 1
+
+if are_co_prime(e, phi):
+    print(f"{e} and {phi} are coprime.")
+else:
+    print(f"{e} and {phi} are not coprime.")
+
+# Function to calculate the modular inverse using the Extended Euclidean Algorithm
+def modular_inverse(a, m):
+    m0, x0, x1 = m, 0, 1
+    while a > 1:
+        q = a // m
+        m, a = a % m, m
+        x0, x1 = x1 - q * x0, x0
+    return x1 + m0 if x1 < 0 else x1
+
+# Calculate the private exponent d
+d = modular_inverse(e, phi)
+print(f"Private exponent (d) will be: {d}")
+print(f"Public key: ({e}, {n})")
+print(f"Private key: ({d}, {n})")
+
+# Encryption function
+def encrypt(message, public_key):
+    e, n = public_key
+    return pow(message, e, n)
+
+# Decryption function
+def decrypt(ciphertext, private_key):
+    d, n = private_key
+    return pow(ciphertext, d, n)
+
+# Encrypt a message
+M = int(input("Enter a message (as a number): "))
+C = encrypt(M, (e, n))
+print(f"Encrypted message: {C}")
+
+# Decrypt the ciphertext
+cypher_text = int(input("Enter the encrypted message: "))
+decrypted_message = decrypt(cypher_text, (d, n))
+print(f"Decrypted message: {decrypted_message}")
+
+# Brute force function to find d 
+def brute_force_private_exponent(phi, e):
+    d_candidate = 2
+    while (d_candidate * e) % phi != 1:
+        d_candidate += 1
+    return d_candidate
+
+
+# d_brute_force = brute_force_private_exponent(phi, e)
+# print(f"Brute-forced private exponent (d): {d_brute_force}")
