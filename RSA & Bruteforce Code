@@ -1,5 +1,6 @@
 import random
 import math
+import time
 
 # Function to check if a number is prime
 def is_prime(num):
@@ -21,7 +22,7 @@ def generate_primes(start, end):
     return [num for num in range(start, end) if is_prime(num)]
 
 # Generate a list of prime numbers and select two random primes
-prime_numbers = generate_primes(1, 100)
+prime_numbers = generate_primes(1, 100)  
 prime_one = random.choice(prime_numbers)
 prime_two = random.choice(prime_numbers)
 
@@ -31,19 +32,19 @@ print(f"Random prime number 2: {prime_two}")
 # Calculate n and the totient (phi)
 n = prime_one * prime_two
 phi = (prime_one - 1) * (prime_two - 1)
-e = 17  # Public exponent
+e = 257 
 
 # Check if e and phi are co_prime
 def are_co_prime(a, b):
     return math.gcd(a, b) == 1
 
-if are_co_prime(e, phi):
-    print(f"{e} and {phi} are coprime.")
-else:
-    print(f"{e} and {phi} are not coprime.")
+if not are_co_prime(e, phi):
+    raise ValueError(f"The chosen e ({e}) and phi ({phi}) are not coprime.")
 
-# Function to calculate the modular inverse using the Extended Euclidean Algorithm
+# Function to calculate the modular inverse using the Euclidean Algorithm
 def modular_inverse(a, m):
+    if math.gcd(a, m) != 1:
+        return None  # Modular inverse does not exist if a and m are not coprime
     m0, x0, x1 = m, 0, 1
     while a > 1:
         q = a // m
@@ -53,9 +54,13 @@ def modular_inverse(a, m):
 
 # Calculate the private exponent d
 d = modular_inverse(e, phi)
+if d is None:
+    raise ValueError("Modular inverse for e does not exist.")
 print(f"Private exponent (d) will be: {d}")
 print(f"Public key: ({e}, {n})")
 print(f"Private key: ({d}, {n})")
+
+start_time = time.time()
 
 # Encryption function
 def encrypt(message, public_key):
@@ -72,9 +77,10 @@ M = int(input("Enter a message (as a number): "))
 C = encrypt(M, (e, n))
 print(f"Encrypted message: {C}")
 
+# Prompt the user to enter the encrypted message
+encrypted_message = int(input("Enter the encrypted message to decrypt: "))
 # Decrypt the ciphertext
-cypher_text = int(input("Enter the encrypted message: "))
-decrypted_message = decrypt(cypher_text, (d, n))
+decrypted_message = decrypt(encrypted_message, (d, n))
 print(f"Decrypted message: {decrypted_message}")
 
 # Brute force function to find d 
@@ -84,6 +90,12 @@ def brute_force_private_exponent(phi, e):
         d_candidate += 1
     return d_candidate
 
+end_time = time.time()
+
+
 
 # d_brute_force = brute_force_private_exponent(phi, e)
 # print(f"Brute-forced private exponent (d): {d_brute_force}")
+
+runtime_ms = (end_time - start_time) * 1000
+print(f"Runtime: {runtime_ms} ms")
