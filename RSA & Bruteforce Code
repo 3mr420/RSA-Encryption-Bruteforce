@@ -44,13 +44,27 @@ if not are_co_prime(e, phi):
 # Function to calculate the modular inverse using the Euclidean Algorithm
 def modular_inverse(a, m):
     if math.gcd(a, m) != 1:
-        return None  # Modular inverse does not exist if a and m are not coprime
+        return None  
     m0, x0, x1 = m, 0, 1
     while a > 1:
         q = a // m
         m, a = a % m, m
         x0, x1 = x1 - q * x0, x0
     return x1 + m0 if x1 < 0 else x1
+
+# Factorization method
+def trial_division_factorization(n):
+    factors = []
+    while n % 2 == 0:
+        factors.append(2)
+        n //= 2
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+        while n % i == 0:
+            factors.append(i)
+            n //= i
+    if n > 2:
+        factors.append(n)
+    return factors
 
 # Calculate the private exponent d
 d = modular_inverse(e, phi)
@@ -61,6 +75,7 @@ print(f"Public key: ({e}, {n})")
 print(f"Private key: ({d}, {n})")
 
 start_time = time.time()
+
 
 # Encryption function
 def encrypt(message, public_key):
@@ -79,9 +94,25 @@ print(f"Encrypted message: {C}")
 
 # Prompt the user to enter the encrypted message
 encrypted_message = int(input("Enter the encrypted message to decrypt: "))
+
 # Decrypt the ciphertext
 decrypted_message = decrypt(encrypted_message, (d, n))
 print(f"Decrypted message: {decrypted_message}")
+
+factors = trial_division_factorization(n)
+if len(factors) == 2 and factors[0] * factors[1] == n:
+    p, q = factors
+    phi_factorization = (p - 1) * (q - 1)
+    d_factorization = modular_inverse(e, phi_factorization)
+    if d_factorization is None:
+        raise ValueError("Modular inverse for e does not exist with the factorization's phi.")
+    print(f"Factorization's calculated private exponent (d): {d_factorization}")
+    assert (e * d_factorization) % phi_factorization == 1, "Factorization's calculated d is incorrect."
+    print(f"Factorization successful, n is: p={p}, q={q}")
+else:
+    print("Failed to factorize n into two primes.")
+
+
 
 # Brute force function to find d 
 def brute_force_private_exponent(phi, e):
@@ -94,8 +125,8 @@ end_time = time.time()
 
 
 
-# d_brute_force = brute_force_private_exponent(phi, e)
-# print(f"Brute-forced private exponent (d): {d_brute_force}")
+d_brute_force = brute_force_private_exponent(phi, e)
+print(f"Brute-forced private exponent (d): {d_brute_force}")
 
 runtime_ms = (end_time - start_time) * 1000
 print(f"Runtime: {runtime_ms} ms")
